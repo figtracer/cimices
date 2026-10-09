@@ -622,6 +622,11 @@ impl Graph {
         self.rank_kind(query, facets, mode, Kind::FailureMode)
     }
 
+    /// Rank concrete findings with the same lexical policy as failure modes.
+    pub fn rank_findings(&self, query: &str, facets: &[&str], mode: RetrievalMode) -> Vec<Hit<'_>> {
+        self.rank_kind(query, facets, mode, Kind::Finding)
+    }
+
     fn rank_kind(
         &self,
         query: &str,

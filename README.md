@@ -60,6 +60,21 @@ bugraph explore data/owasp.json gpt-4o 4096 full 8 2 "liquidation denial of serv
 bugraph instances data/protocols.json bm25 gpt-4o 4096 full "withdrawal" --compact
 ```
 
+## Use with forge properties
+
+Generate a Markdown checklist from the target Solidity declarations and NatSpec,
+then pass it to Foundry.
+
+```sh
+bugraph forge-context data/owasp.json --extra data/vaults.json 4096 12 src/Vault.sol --out forge-context.md
+forge properties --context forge-context.md
+```
+
+The command counts the generated Markdown with the `gpt-4o` tokenizer. Without
+`--include-findings`, it retains SCWE records and standards data such as
+`data/vaults.json`, not audit-derived protocol or Bastet records. To include audit
+records, supply their corpus and add `--include-findings`.
+
 See [retrieval](docs/retrieval.md), [encoding](docs/packing.md),
 [evaluation](docs/evaluation.md), and [contributing](CONTRIBUTING.md).
 
