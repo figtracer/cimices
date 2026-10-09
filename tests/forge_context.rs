@@ -1,4 +1,4 @@
-use bugraph::TokenCounter;
+use cimices::TokenCounter;
 use std::{fs, path::Path, process::Command};
 
 #[test]
@@ -6,10 +6,10 @@ fn forge_context_ranks_erc_4626_vault_classes_from_solidity_natspec() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let fixture = root.join("tests/fixtures/forge_context_vault.sol");
     let output_path = std::env::temp_dir().join(format!(
-        "bugraph-forge-context-generic-{}.md",
+        "cimices-forge-context-generic-{}.md",
         std::process::id()
     ));
-    let output = Command::new(env!("CARGO_BIN_EXE_bugraph"))
+    let output = Command::new(env!("CARGO_BIN_EXE_cimices"))
         .current_dir(root)
         .args([
             "forge-context",
@@ -33,7 +33,7 @@ fn forge_context_ranks_erc_4626_vault_classes_from_solidity_natspec() {
     assert!(output.stdout.is_empty());
 
     let context = fs::read_to_string(&output_path).unwrap();
-    assert!(context.contains("# Bugraph context for forge properties"));
+    assert!(context.contains("# Cimices context for forge properties"));
     assert!(context.contains("checklist of likely failure modes"));
     assert!(context.contains("target's own documentation still decides correct behavior"));
     assert!(context.contains("fm:vault-preview-bounds"), "{context}");
@@ -76,10 +76,10 @@ fn forge_context_includes_audit_findings_only_when_requested() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let fixture = root.join("tests/fixtures/forge_context_vault.sol");
     let output_path = std::env::temp_dir().join(format!(
-        "bugraph-forge-context-findings-{}.md",
+        "cimices-forge-context-findings-{}.md",
         std::process::id()
     ));
-    let output = Command::new(env!("CARGO_BIN_EXE_bugraph"))
+    let output = Command::new(env!("CARGO_BIN_EXE_cimices"))
         .current_dir(root)
         .args([
             "forge-context",

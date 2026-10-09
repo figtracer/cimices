@@ -1,4 +1,4 @@
-use bugraph::{
+use cimices::{
     BundleFormat, BundleOptions, Corpus, Detail, Graph, RetrievalMode, TokenCounter, expand_bundle,
 };
 use serde_json::{Value, json};
@@ -102,7 +102,7 @@ fn decoder_rejects_ambiguous_rows_and_unknown_versions() {
         },
     );
     let value = serde_json::from_str::<Value>(&compact.jsonl).unwrap();
-    assert_eq!(value["encoding"], "bugraph/compact-v1");
+    assert_eq!(value["encoding"], "cimices/compact-v1");
     let mut bad = value.clone();
     bad["encoding"] = json!("future-version");
     assert!(expand_bundle(&bad.to_string()).is_err());
@@ -180,7 +180,7 @@ fn code_provenance_is_required_and_cli_preserves_pinned_markdown() {
         value["nodes"][0]["code"][0][field] = invalid;
         assert!(Graph::compile(serde_json::from_value(value).unwrap()).is_err());
     }
-    let output = Command::new(env!("CARGO_BIN_EXE_bugraph"))
+    let output = Command::new(env!("CARGO_BIN_EXE_cimices"))
         .args([
             "bundle",
             "data/owasp.json",

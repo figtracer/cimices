@@ -1,6 +1,6 @@
 //! Markdown context generation for Foundry property tests.
 
-use bugraph::{Corpus, Graph, Kind, Node, RetrievalMode, TokenCounter};
+use cimices::{Corpus, Graph, Kind, Node, RetrievalMode, TokenCounter};
 use std::{
     collections::{HashMap, HashSet},
     error::Error,
@@ -10,7 +10,7 @@ use std::{
 
 const TOKEN_MODEL: &str = "gpt-4o";
 // Match the reciprocal-rank fusion and category diversity policy used by
-// UltraFuzz routing.
+// routing.
 const RRF_OFFSET: usize = 0;
 const CATEGORY_REPEAT_PENALTY: f64 = 0.15;
 // Keep each source-derived checklist entry within the requested two to four lines.
@@ -604,7 +604,7 @@ fn render_context(
     budget_tokens: usize,
     k: usize,
 ) -> Result<String, String> {
-    let mut markdown = "# Bugraph context for forge properties\n\nThis file provides Bugraph context for `forge properties`.\nIt is a checklist of likely failure modes selected from the target Solidity declarations and NatSpec.\nThe target's own documentation still decides correct behavior.\n\n".to_owned();
+    let mut markdown = "# Cimices context for forge properties\n\nThis file provides Cimices context for `forge properties`.\nIt is a checklist of likely failure modes selected from the target Solidity declarations and NatSpec.\nThe target's own documentation still decides correct behavior.\n\n".to_owned();
     if counter.count(&markdown) > budget_tokens {
         return Err("BUDGET_TOKENS is too small for the required context header".into());
     }

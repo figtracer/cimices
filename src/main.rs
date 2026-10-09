@@ -2,7 +2,7 @@
 
 mod forge_context;
 
-use bugraph::{
+use cimices::{
     BundleFormat, BundleOptions, Corpus, Detail, EvalSuite, Graph, Ledger, RetrievalMode,
     TokenCounter, expand_bundle, import_bastet, import_owasp,
 };
@@ -15,7 +15,7 @@ use std::{
     process::ExitCode,
 };
 
-const USAGE: &str = "Usage: bugraph validate CORPUS\n       bugraph inventory CORPUS MODEL\n       bugraph taxonomy CORPUS MODEL\n       bugraph route-ultrafuzz CORPUS THREAT_MODEL MAX_CLASSES\n       bugraph route-ultrafuzz-plan CORPUS THREAT_MODEL PLANNER_CATALOG MAX_CLASSES\n       bugraph route-ultrafuzz-bundle CORPUS THREAT_MODEL MODEL MAX_TOKENS MAX_CLASSES DETAIL [--compact]\n       bugraph forge-context CORPUS [--extra EXTRA ...] [--include-findings] BUDGET_TOKENS K TARGET.sol... --out FILE\n       bugraph context CORPUS MAX_BYTES [dimension:value ...]\n       bugraph search CORPUS MODE MODEL MAX_TOKENS QUERY [dimension:value ...]\n       bugraph bundle CORPUS MODE MODEL MAX_TOKENS DETAIL QUERY [dimension:value ...] [--compact]\n       bugraph instances CORPUS MODE MODEL MAX_TOKENS DETAIL QUERY [dimension:value ...] [--compact]\n       bugraph resolve CORPUS MODEL MAX_TOKENS DETAIL ID [ID ...] [--compact]\n       bugraph explore CORPUS MODEL MAX_TOKENS DETAIL MAX_DIRECT DEPTH QUERY [dimension:value ...] [--compact]\n       bugraph serve CORPUS MODEL\n       bugraph import-owasp SOURCE_ROOT COMMIT OUTPUT\n       bugraph import-bastet CSV SHA256 SOURCE_URL OUTPUT\n       bugraph expand BUNDLE_JSON\n       bugraph eval CORPUS SUITE MODEL MAX_TOKENS K\n       bugraph show CORPUS ID\n       bugraph descendants CORPUS ID\n       bugraph coverage CORPUS LEDGER\nModes: id_order, bm25, bm25_ancestors\nDetail: summary, full";
+const USAGE: &str = "Usage: cimices validate CORPUS\n       cimices inventory CORPUS MODEL\n       cimices taxonomy CORPUS MODEL\n       cimices route CORPUS THREAT_MODEL MAX_CLASSES\n       cimices route-plan CORPUS THREAT_MODEL PLANNER_CATALOG MAX_CLASSES\n       cimices route-bundle CORPUS THREAT_MODEL MODEL MAX_TOKENS MAX_CLASSES DETAIL [--compact]\n       cimices forge-context CORPUS [--extra EXTRA ...] [--include-findings] BUDGET_TOKENS K TARGET.sol... --out FILE\n       cimices context CORPUS MAX_BYTES [dimension:value ...]\n       cimices search CORPUS MODE MODEL MAX_TOKENS QUERY [dimension:value ...]\n       cimices bundle CORPUS MODE MODEL MAX_TOKENS DETAIL QUERY [dimension:value ...] [--compact]\n       cimices instances CORPUS MODE MODEL MAX_TOKENS DETAIL QUERY [dimension:value ...] [--compact]\n       cimices resolve CORPUS MODEL MAX_TOKENS DETAIL ID [ID ...] [--compact]\n       cimices explore CORPUS MODEL MAX_TOKENS DETAIL MAX_DIRECT DEPTH QUERY [dimension:value ...] [--compact]\n       cimices serve CORPUS MODEL\n       cimices import-owasp SOURCE_ROOT COMMIT OUTPUT\n       cimices import-bastet CSV SHA256 SOURCE_URL OUTPUT\n       cimices expand BUNDLE_JSON\n       cimices eval CORPUS SUITE MODEL MAX_TOKENS K\n       cimices show CORPUS ID\n       cimices descendants CORPUS ID\n       cimices coverage CORPUS LEDGER\nModes: id_order, bm25, bm25_ancestors\nDetail: summary, full";
 
 #[derive(serde::Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
@@ -115,7 +115,7 @@ impl ServeRequest {
     }
 }
 
-fn context_response(id: String, context: bugraph::RankedContext<'_>) -> Value {
+fn context_response(id: String, context: cimices::RankedContext<'_>) -> Value {
     serde_json::json!({
         "version": 1,
         "id": id,
@@ -127,7 +127,7 @@ fn context_response(id: String, context: bugraph::RankedContext<'_>) -> Value {
     })
 }
 
-fn exploration_response(id: String, result: bugraph::ExplorationContext<'_>) -> Value {
+fn exploration_response(id: String, result: cimices::ExplorationContext<'_>) -> Value {
     let selected = result
         .context
         .hits
@@ -443,9 +443,9 @@ fn run() -> Result<(), Box<dyn Error>> {
         io::stdout().lock().write_all(inventory.jsonl.as_bytes())?;
         return Ok(());
     }
-    if args[0] == "route-ultrafuzz" && args.len() == 4 {
+    if args[0] == "route" && args.len() == 4 {
         let threat_model = fs::read(&args[2])?;
-        let route = graph.route_ultrafuzz(&threat_model, args[3].parse()?)?;
+        let route = graph.route(&threat_model, args[3].parse()?)?;
         writeln!(
             io::stdout().lock(),
             "{}",
@@ -453,11 +453,10 @@ fn run() -> Result<(), Box<dyn Error>> {
         )?;
         return Ok(());
     }
-    if args[0] == "route-ultrafuzz-plan" && args.len() == 5 {
+    if args[0] == "route-plan" && args.len() == 5 {
         let threat_model = fs::read(&args[2])?;
         let planner_catalog = fs::read(&args[3])?;
-        let (route, plan) =
-            graph.route_ultrafuzz_plan(&threat_model, &planner_catalog, args[4].parse()?)?;
+        let (route, plan) = graph.route_plan(&threat_model, &planner_catalog, args[4].parse()?)?;
         writeln!(
             io::stdout().lock(),
             "{}",
@@ -466,7 +465,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         writeln!(io::stderr().lock(), "{}", serde_json::to_string(&route)?)?;
         return Ok(());
     }
-    if args[0] == "route-ultrafuzz-bundle" && (args.len() == 7 || args.len() == 8) {
+    if args[0] == "route-bundle" && (args.len() == 7 || args.len() == 8) {
         let compact = args.len() == 8 && args[7] == "--compact";
         if args.len() == 8 && !compact {
             return Err(USAGE.into());
@@ -474,7 +473,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         let threat_model = fs::read(&args[2])?;
         let counter = TokenCounter::for_model(&args[3])?;
         let detail = serde_json::from_value::<Detail>(serde_json::Value::String(args[6].clone()))?;
-        let route = graph.route_ultrafuzz(&threat_model, args[5].parse()?)?;
+        let route = graph.route(&threat_model, args[5].parse()?)?;
         let ids = route
             .selected
             .iter()

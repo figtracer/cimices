@@ -1,4 +1,4 @@
-use bugraph::{Corpus, Graph, Ledger};
+use cimices::{Corpus, Graph, Ledger};
 use serde_json::{Value, json};
 use std::process::Command;
 
@@ -155,7 +155,7 @@ fn coverage_preserves_unknowns_and_requires_evidence_and_revision() {
 
 #[test]
 fn cli_emits_parseable_results_and_reports_errors() {
-    let bin = env!("CARGO_BIN_EXE_bugraph");
+    let bin = env!("CARGO_BIN_EXE_cimices");
     let output = Command::new(bin)
         .args([
             "context",

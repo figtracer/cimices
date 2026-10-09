@@ -248,7 +248,7 @@ impl Graph {
             .map(|edge| serde_json::json!([edge.from, edge.relation, edge.to]))
             .collect::<Vec<_>>();
         let value = serde_json::json!({
-            "schema": "bugraph/inventory-v1",
+            "schema": "cimices/inventory-v1",
             "revision": self.corpus.revision,
             "record_fields": ["id", "kind", "summary", "facets"],
             "facet_table": facet_table,

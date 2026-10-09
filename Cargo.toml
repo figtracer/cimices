@@ -1,11 +1,10 @@
 [package]
-name = "bugraph"
+name = "cimices"
 version = "0.1.0"
 edition = "2024"
 publish = false
 description = "Local taxonomy retrieval and evaluation for smart contract security knowledge"
 license = "MIT"
-repository = "https://github.com/figtracer/bugraph"
 rust-version = "1.98"
 
 [dependencies]

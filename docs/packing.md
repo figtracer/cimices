@@ -7,8 +7,8 @@ source dictionaries, code, the encoding marker, the inline decoding guide, and t
 trailing newline. It excludes the caller's tool/message envelopes.
 
 ```sh
-bugraph bundle data/owasp.json bm25 gpt-4o 2048 full "contract architecture" --compact
-bugraph expand saved-bundle.json
+cimices bundle data/owasp.json bm25 gpt-4o 2048 full "contract architecture" --compact
+cimices expand saved-bundle.json
 ```
 
 Rust consumers can use `Graph::bundle_with_options` with `BundleFormat::Compact`,
@@ -17,7 +17,7 @@ without `--compact` retain their existing JSON format.
 
 ## Contract
 
-Compact responses carry `encoding: "bugraph/compact-v1"` and a `decode` guide.
+Compact responses carry `encoding: "cimices/compact-v1"` and a `decode` guide.
 A decoder applies the following operations:
 
 1. If `source_base` exists, prepend it to each string in `sources`. Citation slots
@@ -62,11 +62,11 @@ makes graph traversal evidence of security coverage.
 [JTON (April 2026)](https://arxiv.org/abs/2604.05865) motivates sharing tabular schema,
 while [Notation Matters (June 2026 revision)](https://arxiv.org/abs/2605.29676) shows
 why format changes need separate comprehension and tool-output checks. These papers
-do not validate Bugraph's format. We retain conventional JSON tool interfaces and
+do not validate Cimices's format. We retain conventional JSON tool interfaces and
 unchanged prose/code rather than adopting content-deleting prompt compression.
 
 [Dictionary-Encoding and In-Context Learning (2026)](https://arxiv.org/abs/2604.13066)
-supports testing repeated-value dictionaries with their overhead included. Bugraph
+supports testing repeated-value dictionaries with their overhead included. Cimices
 limits this additional indirection to classification metadata; prose and code stay
 verbatim. [Meta-Tokens (2025)](https://arxiv.org/abs/2506.00307) studies a different
 model-specific approach; its vocabulary changes are not required by this format.
