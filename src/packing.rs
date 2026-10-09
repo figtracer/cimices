@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
 use std::collections::HashSet;
 
-const ENCODING: &str = "bugraph/compact-v1";
+const ENCODING: &str = "cimices/compact-v1";
 const GUIDE: &str = "URLs = source_base + sources[i]. Array records follow record_fields. Merge record_defaults into each record; local fields override. Code source indexes sources.";
 const FACET_GUIDE: &str = "URLs = source_base + sources[i]. Array records follow record_fields. Merge record_defaults into each record; local fields override. Code source indexes sources. Facet indexes resolve through facet_table.";
 

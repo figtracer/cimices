@@ -59,7 +59,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "bugraph"
+name = "cimices"
 version = "0.1.0"
 dependencies = [
  "csv",

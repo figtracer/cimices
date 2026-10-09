@@ -248,7 +248,7 @@ impl Graph {
             .map(|edge| serde_json::json!([edge.from, edge.relation, edge.to]))
             .collect::<Vec<_>>();
         let value = serde_json::json!({
-            "schema": "bugraph/inventory-v1",
+            "schema": "cimices/inventory-v1",
             "revision": self.corpus.revision,
             "record_fields": ["id", "kind", "summary", "facets"],
             "facet_table": facet_table,
@@ -620,6 +620,11 @@ impl Graph {
     /// the originating lexical score; they are not independent semantic matches.
     pub fn rank(&self, query: &str, facets: &[&str], mode: RetrievalMode) -> Vec<Hit<'_>> {
         self.rank_kind(query, facets, mode, Kind::FailureMode)
+    }
+
+    /// Rank concrete findings with the same lexical policy as failure modes.
+    pub fn rank_findings(&self, query: &str, facets: &[&str], mode: RetrievalMode) -> Vec<Hit<'_>> {
+        self.rank_kind(query, facets, mode, Kind::Finding)
     }
 
     fn rank_kind(

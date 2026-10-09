@@ -12,7 +12,7 @@ fn read_json(reader: &mut impl BufRead) -> Value {
 
 #[test]
 fn persistent_service_reuses_state_and_recovers_from_bad_requests() {
-    let mut child = Command::new(env!("CARGO_BIN_EXE_bugraph"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_cimices"))
         .args(["serve", "data/example.json", "gpt-4o"])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -39,7 +39,7 @@ fn persistent_service_reuses_state_and_recovers_from_bad_requests() {
         inventory["context"]
             .as_str()
             .unwrap()
-            .contains("bugraph/inventory-v1")
+            .contains("cimices/inventory-v1")
     );
 
     writeln!(
@@ -195,7 +195,7 @@ fn persistent_service_reuses_state_and_recovers_from_bad_requests() {
             .count(),
         1
     );
-    let one_shot = Command::new(env!("CARGO_BIN_EXE_bugraph"))
+    let one_shot = Command::new(env!("CARGO_BIN_EXE_cimices"))
         .args([
             "explore",
             "data/example.json",
@@ -254,7 +254,7 @@ fn persistent_service_reuses_state_and_recovers_from_bad_requests() {
 
 #[test]
 fn service_bundle_context_matches_one_shot_output() {
-    let expected = Command::new(env!("CARGO_BIN_EXE_bugraph"))
+    let expected = Command::new(env!("CARGO_BIN_EXE_cimices"))
         .args([
             "bundle",
             "data/example.json",
@@ -268,7 +268,7 @@ fn service_bundle_context_matches_one_shot_output() {
         .unwrap();
     assert!(expected.status.success());
 
-    let mut child = Command::new(env!("CARGO_BIN_EXE_bugraph"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_cimices"))
         .args(["serve", "data/example.json", "gpt-4o"])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())

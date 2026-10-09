@@ -1,8 +1,8 @@
-use bugraph::{Graph, import_owasp};
+use cimices::{Graph, import_owasp};
 use std::{fs, path::PathBuf};
 
 fn temporary_root(name: &str) -> PathBuf {
-    let root = std::env::temp_dir().join(format!("bugraph-import-{}-{name}", std::process::id()));
+    let root = std::env::temp_dir().join(format!("cimices-import-{}-{name}", std::process::id()));
     if root.exists() {
         fs::remove_dir_all(&root).unwrap();
     }

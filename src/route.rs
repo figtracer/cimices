@@ -1,4 +1,4 @@
-//! Deterministic routing from an UltraFuzz threat model to failure-mode records.
+//! Deterministic routing from a threat model to failure-mode records.
 
 use crate::{Graph, RetrievalMode};
 use serde::{Deserialize, Serialize};
@@ -121,7 +121,7 @@ struct Query {
 
 /// One lexical vote supporting a routed failure mode.
 #[derive(Debug, Serialize)]
-pub struct UltraFuzzRouteEvidence {
+pub struct RouteEvidence {
     pub query_id: String,
     pub rank: usize,
     pub score: f64,
@@ -129,36 +129,32 @@ pub struct UltraFuzzRouteEvidence {
 
 /// A failure mode selected through weighted reciprocal-rank fusion.
 #[derive(Debug, Serialize)]
-pub struct UltraFuzzRouteSelection<'a> {
+pub struct RouteSelection<'a> {
     pub id: &'a str,
     pub score: f64,
-    pub evidence: Vec<UltraFuzzRouteEvidence>,
+    pub evidence: Vec<RouteEvidence>,
 }
 
-/// A reproducible, locally computed route for one verified UltraFuzz threat model.
+/// A reproducible, locally computed route for one verified threat model.
 #[derive(Debug, Serialize)]
-pub struct UltraFuzzRoute<'a> {
+pub struct Route<'a> {
     pub schema: &'static str,
     pub corpus_revision: &'a str,
     pub threat_model_sha256: String,
     pub query_count: usize,
     pub max_classes: usize,
-    pub selected: Vec<UltraFuzzRouteSelection<'a>>,
+    pub selected: Vec<RouteSelection<'a>>,
 }
 
 impl Graph {
-    /// Route an UltraFuzz v1 threat model without sending the taxonomy to a model.
-    pub fn route_ultrafuzz(
-        &self,
-        threat_model: &[u8],
-        max_classes: usize,
-    ) -> Result<UltraFuzzRoute<'_>, String> {
+    /// Route a v1 threat model without sending the taxonomy to a model.
+    pub fn route(&self, threat_model: &[u8], max_classes: usize) -> Result<Route<'_>, String> {
         if max_classes == 0 {
             return Err("max classes must be positive".into());
         }
         let model = serde_json::from_slice::<ThreatModel>(threat_model)
             .map_err(|error| format!("invalid threat model: {error}"))?;
-        if model.schema_version != "ultrafuzz.threat-model.v1" {
+        if model.schema_version != "cimices.threat-model.v1" {
             return Err(format!(
                 "unsupported threat model schema: {}",
                 model.schema_version
@@ -176,7 +172,7 @@ impl Graph {
             .map(|capability| capability.id.as_str())
             .collect::<HashSet<_>>();
         let mut scores = HashMap::<&str, f64>::new();
-        let mut evidence = HashMap::<&str, Vec<UltraFuzzRouteEvidence>>::new();
+        let mut evidence = HashMap::<&str, Vec<RouteEvidence>>::new();
         for query in &queries {
             for (index, hit) in self
                 .rank(&query.text, &[], RetrievalMode::Bm25)
@@ -194,14 +190,11 @@ impl Graph {
                 .enumerate()
             {
                 *scores.entry(hit.id).or_default() += reciprocal_rank(query.weight, index + 1);
-                evidence
-                    .entry(hit.id)
-                    .or_default()
-                    .push(UltraFuzzRouteEvidence {
-                        query_id: query.id.clone(),
-                        rank: index + 1,
-                        score: hit.score,
-                    });
+                evidence.entry(hit.id).or_default().push(RouteEvidence {
+                    query_id: query.id.clone(),
+                    rank: index + 1,
+                    score: hit.score,
+                });
             }
         }
         let mut ranked = scores.into_iter().collect::<Vec<_>>();
@@ -251,15 +244,15 @@ impl Graph {
                         .cmp(&right.query_id)
                         .then(left.rank.cmp(&right.rank))
                 });
-                UltraFuzzRouteSelection {
+                RouteSelection {
                     id,
                     score,
                     evidence,
                 }
             });
         }
-        Ok(UltraFuzzRoute {
-            schema: "bugraph/ultrafuzz-route-v1",
+        Ok(Route {
+            schema: "cimices/route-v1",
             corpus_revision: &self.corpus().revision,
             threat_model_sha256: format!("{:x}", Sha256::digest(threat_model)),
             query_count: queries.len(),
@@ -268,24 +261,24 @@ impl Graph {
         })
     }
 
-    /// Build the complete UltraFuzz goal plan locally from a routed planner catalog.
-    pub fn route_ultrafuzz_plan(
+    /// Build the complete goal plan locally from a routed planner catalog.
+    pub fn route_plan(
         &self,
         threat_model: &[u8],
         planner_catalog: &[u8],
         max_classes: usize,
-    ) -> Result<(UltraFuzzRoute<'_>, Value), String> {
+    ) -> Result<(Route<'_>, Value), String> {
         let model = serde_json::from_slice::<ThreatModel>(threat_model)
             .map_err(|error| format!("invalid threat model: {error}"))?;
         let catalog = serde_json::from_slice::<PlannerCatalog>(planner_catalog)
             .map_err(|error| format!("invalid planner catalog: {error}"))?;
-        if catalog.schema_version != "ultrafuzz.vulnerability-db.planner-catalog.v1" {
+        if catalog.schema_version != "cimices.planner-catalog.v1" {
             return Err(format!(
                 "unsupported planner catalog schema: {}",
                 catalog.schema_version
             ));
         }
-        let route = self.route_ultrafuzz(threat_model, max_classes)?;
+        let route = self.route(threat_model, max_classes)?;
         let records = catalog
             .records
             .iter()
@@ -294,7 +287,7 @@ impl Graph {
         let routed_ids = route
             .selected
             .iter()
-            .map(|selection| ultrafuzz_class_id(selection.id))
+            .map(|selection| planner_class_id(selection.id))
             .collect::<Vec<_>>();
         if routed_ids.len() != catalog.records.len()
             || routed_ids
@@ -453,7 +446,7 @@ impl Graph {
                     "title": record.title,
                     "goal_prompt": format!("Your /goal is to find a vulnerability of type {{{{class:{}}}}} using {threat_placeholders}.", record.id),
                     "replacements": replacements,
-                    "selection_rationale": "Bugraph routed this class from the verified threat model using local deterministic retrieval.",
+                    "selection_rationale": "Cimices routed this class from the verified threat model using local deterministic retrieval.",
                 })
             })
             .collect::<Vec<_>>();
@@ -490,12 +483,12 @@ impl Graph {
             .map(|(_, record)| selected_record(record))
             .collect::<Vec<_>>();
         let plan = json!({
-            "schema_version": "ultrafuzz.goal-plan.v1",
+            "schema_version": "cimices.goal-plan.v1",
             "policy": "additive-v1",
             "threat_model_sha256": format!("{:x}", Sha256::digest(threat_model)),
             "vulnerability_database": {
                 "planner_catalog_schema_version": catalog.schema_version,
-                "snapshot_manifest_schema_version": "ultrafuzz.vulnerability-db.snapshot.v1",
+                "snapshot_manifest_schema_version": "cimices.planner-snapshot.v1",
                 "database_schema_version": catalog.database_schema_version,
                 "aggregate_sha256": catalog.database_aggregate_sha256,
                 "catalog_sha256": format!("{:x}", Sha256::digest(planner_catalog)),
@@ -533,7 +526,7 @@ impl CapabilityStatus {
     }
 }
 
-fn ultrafuzz_class_id(id: &str) -> String {
+fn planner_class_id(id: &str) -> String {
     id.strip_prefix("scwe:")
         .map_or_else(|| id.to_owned(), |number| format!("scwe-{number}"))
 }
@@ -685,7 +678,7 @@ mod tests {
     #[test]
     fn routes_linked_threat_model_fields_and_rejects_invalid_inputs() {
         let bytes = serde_json::to_vec(&json!({
-            "schema_version": "ultrafuzz.threat-model.v1",
+            "schema_version": "cimices.threat-model.v1",
             "attack_surfaces": [{
                 "id": "surface:vault", "name": "Vault shares",
                 "description": "Share accounting", "entry_points": ["deposit", "redeem"]
@@ -705,30 +698,24 @@ mod tests {
         }))
         .unwrap();
         let graph = graph();
-        let route = graph.route_ultrafuzz(&bytes, 2).unwrap();
-        assert_eq!(route.schema, "bugraph/ultrafuzz-route-v1");
+        let route = graph.route(&bytes, 2).unwrap();
+        assert_eq!(route.schema, "cimices/route-v1");
         assert_eq!(route.query_count, 2);
         assert_eq!(route.selected[0].id, "rounding");
         assert_eq!(route.selected.len(), 1);
         assert_eq!(route.threat_model_sha256.len(), 64);
-        assert!(graph.route_ultrafuzz(&bytes, 0).is_err());
+        assert!(graph.route(&bytes, 0).is_err());
 
         let mut absent = serde_json::from_slice::<serde_json::Value>(&bytes).unwrap();
         absent["capabilities"] = json!([{"id":"scsvs-comp","status":"absent"}]);
         let absent = serde_json::to_vec(&absent).unwrap();
-        assert!(
-            graph
-                .route_ultrafuzz(&absent, 2)
-                .unwrap()
-                .selected
-                .is_empty()
-        );
+        assert!(graph.route(&absent, 2).unwrap().selected.is_empty());
 
-        let wrong = br#"{"schema_version":"ultrafuzz.threat-model.v2"}"#;
-        assert!(graph.route_ultrafuzz(wrong, 1).is_err());
+        let wrong = br#"{"schema_version":"cimices.threat-model.v2"}"#;
+        assert!(graph.route(wrong, 1).is_err());
 
         let catalog = serde_json::to_vec(&json!({
-            "schema_version": "ultrafuzz.vulnerability-db.planner-catalog.v1",
+            "schema_version": "cimices.planner-catalog.v1",
             "database_schema_version": 4,
             "database_aggregate_sha256": "a".repeat(64),
             "records": [{
@@ -745,7 +732,7 @@ mod tests {
             }]
         }))
         .unwrap();
-        let (_, plan) = graph.route_ultrafuzz_plan(&bytes, &catalog, 2).unwrap();
+        let (_, plan) = graph.route_plan(&bytes, &catalog, 2).unwrap();
         assert_eq!(plan["threat_goals"].as_array().unwrap().len(), 1);
         assert_eq!(plan["class_goals"].as_array().unwrap().len(), 1);
         assert_eq!(plan["class_goals"][0]["id"], "rounding");
@@ -760,16 +747,12 @@ mod tests {
         );
 
         let extra_catalog = serde_json::to_vec(&json!({
-            "schema_version": "ultrafuzz.vulnerability-db.planner-catalog.v1",
+            "schema_version": "cimices.planner-catalog.v1",
             "database_schema_version": 4,
             "database_aggregate_sha256": "a".repeat(64),
             "records": []
         }))
         .unwrap();
-        assert!(
-            graph
-                .route_ultrafuzz_plan(&bytes, &extra_catalog, 2)
-                .is_err()
-        );
+        assert!(graph.route_plan(&bytes, &extra_catalog, 2).is_err());
     }
 }

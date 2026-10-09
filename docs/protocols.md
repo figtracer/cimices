@@ -35,18 +35,18 @@ Twenty-six findings from Code4rena, Blackthorn, and Cantina reports support twen
 The graph contains 62 nodes and 85 edges. `specializes` connects narrower modes
 to broader categories, `violates` links modes to properties, and `instance_of`
 connects historical findings to modes. The liquidation reward mode has both an
-accounting parent and a liquidation parent. These relationships are Bugraph's
+accounting parent and a liquidation parent. These relationships are Cimices's
 curation, not labels supplied by Code4rena or OWASP.
 
 ```sh
-bugraph explore data/protocols.json gpt-4o 4096 full 5 2 "liquidation reward" --compact
-bugraph instances data/protocols.json bm25 gpt-4o 4096 full "withdrawal" --compact
-bugraph resolve data/protocols.json gpt-4o 4096 full mode:delisted-collateral-exit finding:c4:init-m09 --compact
+cimices explore data/protocols.json gpt-4o 4096 full 5 2 "liquidation reward" --compact
+cimices instances data/protocols.json bm25 gpt-4o 4096 full "withdrawal" --compact
+cimices resolve data/protocols.json gpt-4o 4096 full mode:delisted-collateral-exit finding:c4:init-m09 --compact
 ```
 
 Mode records describe root cause, applicability, exclusions, and corrective design
 principles. Finding records retain report severity and sponsor disposition separately
-from Bugraph's `source_checked` status. A reported fix is not independent verification
+from Cimices's `source_checked` status. A reported fix is not independent verification
 of that fix. Findings describe historical audit scopes, not current deployments.
 
 INIT M-09 specifically preserves the report's qualification: under the sponsor's
@@ -67,5 +67,5 @@ remain publicly accessible. No report code or reproductions are bundled. See
 [attribution](../data/ATTRIBUTION.md).
 
 This corpus is separately selectable. It does not modify OWASP source records or
-automatically add new classes to UltraFuzz's SCWE planner catalog. Existing authored
+automatically add new classes to the SCWE planner catalog. Existing authored
 retrieval diagnostics are not independent evaluation of these new records.

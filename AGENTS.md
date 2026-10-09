@@ -1,6 +1,6 @@
 # Agent instructions
 
-Bugraph organizes and retrieves smart contract security knowledge. Keep taxonomy
+Cimices organizes and retrieves smart contract security knowledge. Keep taxonomy
 definitions, source evidence, retrieval policy, and assessment state separate.
 
 Run `cargo fmt --all -- --check`, `cargo clippy --locked --all-targets -- -D warnings`,

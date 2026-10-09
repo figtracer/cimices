@@ -1,6 +1,6 @@
 //! Reproducible synthetic comparison of flat filtering and indexed filtering.
 
-use bugraph::{Corpus, Graph, Kind, Node};
+use cimices::{Corpus, Graph, Kind, Node};
 use std::{env, hint::black_box, time::Instant};
 
 fn main() {

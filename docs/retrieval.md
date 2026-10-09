@@ -5,7 +5,7 @@ facet and lexical posting lists, and cached JSONL summaries. Load once and reuse
 `Graph` in a long-lived consumer. The `serve` command keeps one graph and tokenizer
 alive behind a versioned JSON-lines protocol; ordinary CLI commands reload them.
 
-Start `bugraph serve CORPUS MODEL` and wait for its readiness line. Each subsequent
+Start `cimices serve CORPUS MODEL` and wait for its readiness line. Each subsequent
 stdin line is one request and produces exactly one stdout line. `op: "inventory"`
 returns every node and edge as a self-describing routing table; `op: "taxonomy"`
 omits concrete findings and their instance edges. Bundle requests use
